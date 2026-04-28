@@ -1,17 +1,21 @@
 variable "prefix" {
-  type = string
+  description = "Resource name prefix (e.g. 'publicserve')"
+  type        = string
 }
 
 variable "environment" {
-  type = string
+  description = "Deployment environment — matches Terraform workspace name (e.g. 'nprod', 'prod')"
+  type        = string
 }
 
 variable "resource_group_name" {
-  type = string
+  description = "Name of the resource group to deploy into"
+  type        = string
 }
 
 variable "location" {
-  type = string
+  description = "Azure region for the Key Vault"
+  type        = string
 }
 
 variable "sp_principal_id" {

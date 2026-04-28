@@ -1,4 +1,5 @@
 resource "azurerm_storage_account" "this" {
+  # Storage account names must be lowercase alphanumeric, ≤24 chars — hence no hyphens
   name                     = "st${var.prefix}${var.environment}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
