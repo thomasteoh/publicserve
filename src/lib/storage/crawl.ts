@@ -24,7 +24,7 @@ export async function runCrawl(location: StorageLocation): Promise<CrawlResult> 
 
     const seenPaths = new Set<string>()
     let added = 0
-    const updated = 0
+    let updated = 0
 
     for await (const entry of backend.list(location.rootPath)) {
       if (!entry.path.endsWith(".html")) continue

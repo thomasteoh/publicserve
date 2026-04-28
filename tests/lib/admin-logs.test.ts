@@ -1,3 +1,4 @@
+// tests/lib/admin-logs.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 const mockListEntities = vi.fn()
@@ -37,11 +38,12 @@ describe("queryLogs", () => {
 
   it("appends RowKey cursor filter when cursor provided", async () => {
     const { queryLogs } = await import("@/lib/admin-logs")
+    // New cursor format: "{date}_{catIdx}_{rowKey}"
     await queryLogs({
       category: "auth",
       from: "2026-04-28",
       to: "2026-04-28",
-      cursor: "9007199250000000-abcd",
+      cursor: "20260428_0_9007199250000000-abcd",
     })
     expect(mockListEntities).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -54,7 +56,7 @@ describe("queryLogs", () => {
     )
   })
 
-  it("stops at 50 entries and returns nextCursor", async () => {
+  it("stops at 50 entries and returns nextCursor with position", async () => {
     mockListEntities.mockReturnValue(
       (async function* () {
         for (let i = 0; i < 55; i++) {
@@ -75,6 +77,7 @@ describe("queryLogs", () => {
       to: "2026-04-28",
     })
     expect(result.entries).toHaveLength(50)
-    expect(result.nextCursor).toBe("00049")
+    // Cursor encodes date_catIdx_rowKey
+    expect(result.nextCursor).toBe("20260428_0_00049")
   })
 })
