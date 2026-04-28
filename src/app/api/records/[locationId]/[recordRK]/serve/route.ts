@@ -6,6 +6,7 @@ import { getRecord } from "@/lib/storage/records"
 import { getStorageLocation } from "@/lib/storage/locations"
 import { getSecret } from "@/lib/keyvault"
 import { createBackend } from "@/lib/storage/factory"
+import { writeLog } from "@/lib/logging"
 import type { StorageCredential } from "@/lib/storage/types"
 import { Readable } from "stream"
 
@@ -27,6 +28,11 @@ export async function GET(
 
   const perms = await resolvePermissions(session.user.id, record.orgId)
   if (!perms.isAdmin && !perms.canRead) {
+    writeLog("permission_denied", "warn", "permission denied: serve", {
+      userId: session.user.id,
+      locationId,
+      recordRK,
+    })
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
@@ -35,19 +41,38 @@ export async function GET(
     return NextResponse.json({ error: "Storage location not found" }, { status: 404 })
   }
 
-  const creds = await getSecret<StorageCredential>(location.credentialRef)
-  const backend = createBackend(location, creds)
+  try {
+    const creds = await getSecret<StorageCredential>(location.credentialRef)
+    const backend = createBackend(location, creds)
+    const signedUrl = await backend.getSignedUrl(record.path, 300)
 
-  const signedUrl = await backend.getSignedUrl(record.path, 300)
+    if (signedUrl !== null) {
+      writeLog("serve", "info", "record served via redirect", {
+        userId: session.user.id,
+        orgId: record.orgId,
+        locationId,
+        recordRK,
+      })
+      return NextResponse.redirect(signedUrl, 302)
+    }
 
-  if (signedUrl !== null) {
-    return NextResponse.redirect(signedUrl, 302)
+    writeLog("serve", "info", "record served via sftp proxy", {
+      userId: session.user.id,
+      orgId: record.orgId,
+      locationId,
+      recordRK,
+    })
+    const stream = await backend.readStream(record.path)
+    const webStream = Readable.toWeb(stream as Readable) as ReadableStream
+    return new Response(webStream, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    })
+  } catch (err) {
+    writeLog("storage_error", "error", "storage error during serve", {
+      userId: session.user.id,
+      locationId,
+      error: err instanceof Error ? err.message : String(err),
+    })
+    return NextResponse.json({ error: "Storage error" }, { status: 500 })
   }
-
-  // SFTP: proxy stream
-  const stream = await backend.readStream(record.path)
-  const webStream = Readable.toWeb(stream as Readable) as ReadableStream
-  return new Response(webStream, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  })
 }

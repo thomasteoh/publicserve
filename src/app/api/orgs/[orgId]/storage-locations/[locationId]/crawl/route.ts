@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { resolvePermissions } from "@/lib/permissions"
 import { getStorageLocation } from "@/lib/storage/locations"
 import { runCrawl } from "@/lib/storage/crawl"
+import { writeLog } from "@/lib/logging"
 
 export async function POST(
   _req: Request,
@@ -18,6 +19,11 @@ export async function POST(
 
   const perms = await resolvePermissions(session.user.id, orgId)
   if (!perms.isAdmin && !perms.canConfigureIntegrations) {
+    writeLog("permission_denied", "warn", "permission denied: crawl", {
+      userId: session.user.id,
+      orgId,
+      locationId,
+    })
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
