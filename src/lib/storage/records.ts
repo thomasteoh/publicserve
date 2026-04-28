@@ -39,7 +39,7 @@ export async function upsertRecord(
     lastModified: entry.lastModified.toISOString(),
     stale: false,
     lastCrawledAt: new Date().toISOString(),
-    createdAt: existing ? (existing as { createdAt: string }).createdAt : new Date().toISOString(),
+    createdAt: existing ? (existing as unknown as { createdAt: string }).createdAt : new Date().toISOString(),
   })
 }
 

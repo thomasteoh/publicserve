@@ -37,7 +37,7 @@ describe("listStorageLocations", () => {
     vi.mocked(tableList).mockResolvedValue([
       { partitionKey: "org-1", rowKey: "loc-1", name: "Loc A", type: "azure_blob",
         rootPath: "c/path", credentialRef: "storage-cred-loc-1", createdAt: "", createdBy: "u1" },
-    ])
+    ] as any)
     const { listStorageLocations } = await import("@/lib/storage/locations")
     const locs = await listStorageLocations("org-1")
     expect(locs).toHaveLength(1)
