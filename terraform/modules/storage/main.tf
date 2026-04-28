@@ -5,7 +5,7 @@ resource "azurerm_storage_account" "this" {
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  is_hns_enabled           = true  # ADLS Gen2 hierarchical namespace
+  is_hns_enabled           = true # ADLS Gen2 hierarchical namespace
 }
 
 locals {
