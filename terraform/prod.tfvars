@@ -1,0 +1,1 @@
+sp_principal_id = "REPLACE_WITH_BOOTSTRAP_SP_OBJECT_ID"
