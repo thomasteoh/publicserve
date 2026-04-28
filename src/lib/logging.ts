@@ -1,4 +1,5 @@
 import { getTableClient } from "@/lib/azure-tables"
+import type { TableEntity } from "@azure/data-tables"
 
 export type LogCategory =
   | "auth"
@@ -32,7 +33,7 @@ export function writeLog(
       const rowKey = `${reverseMs}-${Math.random().toString(36).slice(2, 10)}`
 
       const { userId, orgId, ...rest } = metadata ?? {}
-      const entity: Record<string, unknown> = {
+      const entity: TableEntity<Record<string, unknown>> = {
         partitionKey,
         rowKey,
         category,
