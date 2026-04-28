@@ -1,6 +1,7 @@
 // src/lib/keyvault.ts
 import { SecretClient } from "@azure/keyvault-secrets"
 import { DefaultAzureCredential } from "@azure/identity"
+import { writeLog } from "@/lib/logging"
 
 let _client: SecretClient | null = null
 
@@ -13,10 +14,18 @@ function getClient(): SecretClient {
 }
 
 export async function getSecret<T = unknown>(secretName: string): Promise<T> {
-  const client = getClient()
-  const secret = await client.getSecret(secretName)
-  if (!secret.value) throw new Error(`Secret ${secretName} has no value`)
-  return JSON.parse(secret.value) as T
+  try {
+    const client = getClient()
+    const secret = await client.getSecret(secretName)
+    if (!secret.value) throw new Error(`Secret ${secretName} has no value`)
+    return JSON.parse(secret.value) as T
+  } catch (err) {
+    writeLog("storage_error", "error", "keyvault error", {
+      secretName,
+      error: err instanceof Error ? err.message : String(err),
+    })
+    throw err
+  }
 }
 
 export async function setSecret(secretName: string, value: unknown): Promise<void> {

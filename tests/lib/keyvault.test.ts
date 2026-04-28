@@ -16,6 +16,8 @@ vi.mock("@azure/identity", () => ({
   DefaultAzureCredential: vi.fn(),
 }))
 
+vi.mock("@/lib/logging", () => ({ writeLog: vi.fn() }))
+
 describe("getSecret", () => {
   beforeEach(() => vi.clearAllMocks())
 

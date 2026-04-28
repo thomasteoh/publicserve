@@ -2,6 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { createHash } from "crypto"
 
+vi.mock("@/lib/logging", () => ({ writeLog: vi.fn() }))
+
 vi.mock("@/lib/storage/records", () => ({
   upsertRecord: vi.fn(),
   markStaleRecords: vi.fn(() => Promise.resolve(1)),
