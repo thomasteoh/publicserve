@@ -110,8 +110,7 @@ terraform apply -var-file=nprod.tfvars
 | `ARM_CLIENT_SECRET` | SP client secret |
 | `ARM_TENANT_ID` | Azure tenant ID |
 | `ARM_SUBSCRIPTION_ID` | Azure subscription ID |
-| `AZURE_STATIC_WEB_APPS_API_TOKEN_NPROD` | SWA deploy token (nprod) |
-| `AZURE_STATIC_WEB_APPS_API_TOKEN_PROD` | SWA deploy token (prod) |
+| `AZURE_STATIC_WEB_APPS_API_TOKEN` | SWA deploy token — set per GitHub Environment (`nprod`/`prod`), different value each |
 
 ## Out of Scope (Phase 1)
 
