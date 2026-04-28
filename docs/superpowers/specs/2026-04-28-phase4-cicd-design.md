@@ -132,7 +132,8 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
           app_location: /
-          output_location: .next
+          output_location: ""
+          # output_location is empty for Next.js SSR — SWA detects Next.js and handles build output automatically
 ```
 
 ## GitHub Environments

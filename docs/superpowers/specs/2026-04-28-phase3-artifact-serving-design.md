@@ -29,7 +29,7 @@ HTML artefacts stored in external storage (Azure ADLS/Blob, AWS S3, SFTP) are re
 ```typescript
 interface StorageBackend {
   list(path: string): AsyncIterable<StorageEntry>       // recursive, any depth
-  readStream(path: string): Promise<ReadableStream>
+  readStream(path: string): Promise<NodeJS.ReadableStream>
   getSignedUrl(path: string, expiresInSecs: number): Promise<string | null>
   // getSignedUrl returns null for SFTP — caller falls back to proxy
 }

@@ -36,13 +36,18 @@ Resources are workspace-parameterised — `{env}` = `nprod` or `prod`.
 
 Tables provisioned in `stpublicserve{env}`:
 
-- `Users`
-- `Sessions`
-- `Groups`
-- `Orgs`
-- `OrgGroups`
-- `Records`
-- `StorageLocations`
+| Table | Owner | Purpose |
+|---|---|---|
+| `Users` | next-auth adapter | Auth user records |
+| `Accounts` | next-auth adapter | OAuth/email provider account links |
+| `Sessions` | next-auth adapter | Active database sessions |
+| `VerificationTokens` | next-auth adapter | Magic link tokens |
+| `Groups` | App | Group definitions (incl. admin group) |
+| `UserGroups` | App | User ↔ group memberships |
+| `Orgs` | App | Organisation records |
+| `OrgGroups` | App | Group ↔ org assignments with permission flags |
+| `Records` | App | Links to external HTML artefacts |
+| `StorageLocations` | App | Configured external storage backends |
 
 #### Storage Account — ADLS Gen2
 
