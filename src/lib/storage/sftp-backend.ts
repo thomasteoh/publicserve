@@ -47,10 +47,13 @@ export class SftpBackend implements StorageBackend {
   async readStream(path: string): Promise<NodeJS.ReadableStream> {
     const sftp = new SftpClient()
     await sftp.connect(this.connectOptions())
-    // ssh2-sftp-client.get with no destination returns a Buffer
-    const buf = await sftp.get(path) as Buffer
-    await sftp.end()
-    return Readable.from(buf)
+    try {
+      // ssh2-sftp-client.get with no destination returns a Buffer
+      const buf = await sftp.get(path) as Buffer
+      return Readable.from(buf)
+    } finally {
+      await sftp.end()
+    }
   }
 
   async getSignedUrl(_path: string, _expiresInSecs: number): Promise<null> {
