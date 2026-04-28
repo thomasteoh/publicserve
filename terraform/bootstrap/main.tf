@@ -52,6 +52,9 @@ resource "azuread_service_principal_password" "cicd" {
   service_principal_id = azuread_service_principal.cicd.id
 }
 
+# Subscription-level Contributor is intentionally broad — the SP must be able to
+# create resource groups and all child resources (SWA, storage, Key Vault) across
+# both nprod and prod environments. Narrow this if a more restricted SP is acceptable.
 resource "azurerm_role_assignment" "cicd_contributor" {
   scope                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
   role_definition_name = "Contributor"
