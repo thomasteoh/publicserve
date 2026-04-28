@@ -41,7 +41,7 @@ export async function getAdminGroups(): Promise<Group[]> {
   return rows.map(entityToGroup)
 }
 
-function entityToGroup(e: Record<string, unknown>): Group {
+function entityToGroup(e: Group & { partitionKey: string; rowKey: string }): Group {
   return {
     groupId: e.rowKey as string,
     name: e.name as string,

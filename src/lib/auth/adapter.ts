@@ -17,7 +17,13 @@ export function AzureTablesAdapter(): Adapter {
         createdAt: new Date().toISOString(),
       }
       await tableUpsert("Users", entity)
-      return { id, ...data }
+      return {
+        id,
+        email: data.email,
+        emailVerified: data.emailVerified ?? null,
+        name: data.name ?? null,
+        image: data.image ?? null,
+      }
     },
 
     async getUser(id) {

@@ -1,6 +1,7 @@
 // tests/lib/auth/adapter.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { randomUUID } from "crypto"
+import type { AdapterUser } from "next-auth/adapters"
 
 vi.mock("@/lib/auth/tables", () => ({
   tableGet: vi.fn(),
@@ -18,7 +19,7 @@ describe("AzureTablesAdapter", () => {
     vi.mocked(tableUpsert).mockResolvedValue(undefined)
     const { AzureTablesAdapter } = await import("@/lib/auth/adapter")
     const adapter = AzureTablesAdapter()
-    const user = await adapter.createUser!({ email: "test@example.com", emailVerified: null })
+    const user = await adapter.createUser!({ email: "test@example.com", emailVerified: null } as AdapterUser)
     expect(tableUpsert).toHaveBeenCalledWith(
       "Users",
       expect.objectContaining({ partitionKey: "user", email: "test@example.com" })

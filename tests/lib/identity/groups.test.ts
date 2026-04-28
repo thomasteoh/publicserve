@@ -17,7 +17,7 @@ describe("getGroup", () => {
     vi.mocked(tableGet).mockResolvedValue({
       partitionKey: "group", rowKey: "g1", name: "admin", isAdmin: true,
       createdAt: "2026-01-01T00:00:00Z", createdBy: "system",
-    })
+    } as Record<string, unknown> & { partitionKey: string; rowKey: string })
     const { getGroup } = await import("@/lib/identity/groups")
     const group = await getGroup("g1")
     expect(group?.name).toBe("admin")
