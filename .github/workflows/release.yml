@@ -1,0 +1,81 @@
+# .github/workflows/release.yml
+name: Release — Deploy
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  detect-env:
+    name: Detect Target Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.detect.outputs.env }}
+    steps:
+      - id: detect
+        name: Resolve env from tag
+        run: |
+          if [[ "${{ github.ref_name }}" == *rc* ]]; then
+            echo "env=nprod" >> $GITHUB_OUTPUT
+          else
+            echo "env=prod" >> $GITHUB_OUTPUT
+          fi
+
+  deploy:
+    name: Deploy (${{ needs.detect-env.outputs.environment }})
+    needs: detect-env
+    runs-on: ubuntu-latest
+    environment: ${{ needs.detect-env.outputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      DEPLOY_ENV: ${{ needs.detect-env.outputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.7"
+
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform workspace select
+        working-directory: terraform
+        run: |
+          terraform workspace select "$DEPLOY_ENV" || terraform workspace new "$DEPLOY_ENV"
+
+      - name: Terraform apply
+        working-directory: terraform
+        run: terraform apply -var-file="${DEPLOY_ENV}.tfvars" -auto-approve
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          AZURE_TABLES_CONNECTION_STRING: ${{ secrets.AZURE_TABLES_CONNECTION_STRING }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_URL: ${{ secrets.AUTH_URL }}
+          AZURE_KEYVAULT_URI: ${{ secrets.AZURE_KEYVAULT_URI }}
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: /
+          output_location: ""
+          # output_location is empty for Next.js SSR (SWA detects Next.js automatically)
