@@ -29,7 +29,7 @@ export function writeLog(
       const reverseMs = (Number.MAX_SAFE_INTEGER - now.getTime())
         .toString()
         .padStart(16, "0")
-      const rowKey = `${reverseMs}-${Math.random().toString(36).slice(2, 6)}`
+      const rowKey = `${reverseMs}-${Math.random().toString(36).slice(2, 10)}`
 
       const { userId, orgId, ...rest } = metadata ?? {}
       const entity: Record<string, unknown> = {

@@ -55,6 +55,6 @@ describe("writeLog", () => {
     mockCreateEntity.mockRejectedValueOnce(new Error("network error"))
     const { writeLog } = await import("@/lib/logging")
     expect(() => writeLog("auth", "info", "test")).not.toThrow()
-    await new Promise((r) => setTimeout(r, 50))
+    await vi.waitFor(() => expect(mockCreateEntity).toHaveBeenCalled())
   })
 })
