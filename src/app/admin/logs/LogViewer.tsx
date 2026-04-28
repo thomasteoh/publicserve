@@ -26,17 +26,23 @@ export default function LogViewer({
   async function loadMore() {
     if (!nextCursor) return
     setLoading(true)
-    const qs = new URLSearchParams()
-    if (category) qs.set("category", category)
-    if (from) qs.set("from", from)
-    if (to) qs.set("to", to)
-    qs.set("cursor", nextCursor)
-    const res = await fetch(`/api/admin/logs?${qs}`)
-    const data: { entries: LogEntry[]; nextCursor: string | null } =
-      await res.json()
-    setEntries((prev) => [...prev, ...data.entries])
-    setNextCursor(data.nextCursor)
-    setLoading(false)
+    try {
+      const qs = new URLSearchParams()
+      if (category) qs.set("category", category)
+      if (from) qs.set("from", from)
+      if (to) qs.set("to", to)
+      qs.set("cursor", nextCursor)
+      const res = await fetch(`/api/admin/logs?${qs}`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data: { entries: LogEntry[]; nextCursor: string | null } =
+        await res.json()
+      setEntries((prev) => [...prev, ...data.entries])
+      setNextCursor(data.nextCursor)
+    } catch (err) {
+      console.error("[loadMore]", err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   function toggleRow(rowKey: string) {
@@ -46,6 +52,14 @@ export default function LogViewer({
       else next.add(rowKey)
       return next
     })
+  }
+
+  function safeParseMetadata(raw: string): string {
+    try {
+      return JSON.stringify(JSON.parse(raw), null, 2)
+    } catch {
+      return raw
+    }
   }
 
   return (
@@ -89,7 +103,7 @@ export default function LogViewer({
                     style={{ padding: "0.5rem", background: "#f9f9f9" }}
                   >
                     <pre style={{ margin: 0, fontSize: "0.85em" }}>
-                      {JSON.stringify(JSON.parse(entry.metadata), null, 2)}
+                      {safeParseMetadata(entry.metadata)}
                     </pre>
                   </td>
                 </tr>
