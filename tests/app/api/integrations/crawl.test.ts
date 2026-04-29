@@ -59,6 +59,19 @@ describe("POST /api/integrations/crawl", () => {
     expect(res.status).toBe(400)
   })
 
+  it("returns 400 when body is not valid JSON", async () => {
+    const { POST } = await import("@/app/api/integrations/crawl/route")
+    const res = await POST(new Request("http://localhost/api/integrations/crawl", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer ps_somekey",
+      },
+      body: "{broken",
+    }))
+    expect(res.status).toBe(400)
+  })
+
   it("returns 401 when api key is invalid", async () => {
     mockValidateApiKey.mockResolvedValue({ valid: false })
     const { POST } = await import("@/app/api/integrations/crawl/route")
@@ -112,6 +125,24 @@ describe("POST /api/integrations/crawl", () => {
     expect(mockRecordTrigger).toHaveBeenCalledWith("org-1")
     expect(mockWriteLog).toHaveBeenCalledWith(
       "crawl", "info", "api-triggered crawl started", { orgId: "org-1", locationCount: 2 }
+    )
+  })
+
+  it("logs crawl error when some locations fail", async () => {
+    mockValidateApiKey.mockResolvedValue({ valid: true })
+    mockGetOrg.mockResolvedValue({ orgId: "org-1", name: "Org One" })
+    const loc1 = { storageLocationId: "loc-1", orgId: "org-1" }
+    const loc2 = { storageLocationId: "loc-2", orgId: "org-1" }
+    mockListStorageLocations.mockResolvedValue([loc1, loc2])
+    mockRecordTrigger.mockResolvedValue(undefined)
+    mockRunCrawl.mockResolvedValue({ added: 1, updated: 0, stale: 0, unchanged: 0 })
+    mockRunCrawl.mockRejectedValueOnce(new Error("connection refused"))
+    const { POST } = await import("@/app/api/integrations/crawl/route")
+    const res = await POST(makeReq({ orgId: "org-1" }, "ps_key"))
+    expect(res.status).toBe(202)
+    expect(await res.json()).toEqual({ orgId: "org-1", locationCount: 2 })
+    expect(mockWriteLog).toHaveBeenCalledWith(
+      "crawl", "error", "crawl completed with errors", { orgId: "org-1", failed: 1 }
     )
   })
 })

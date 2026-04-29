@@ -60,8 +60,16 @@ export async function POST(req: Request) {
   writeLog("crawl", "info", "api-triggered crawl started", { orgId, locationCount: locations.length })
 
   void (async () => {
+    let failed = 0
     for (const location of locations) {
-      await runCrawl(location)
+      try {
+        await runCrawl(location)
+      } catch {
+        failed++
+      }
+    }
+    if (failed > 0) {
+      writeLog("crawl", "error", "crawl completed with errors", { orgId, failed })
     }
   })()
 
