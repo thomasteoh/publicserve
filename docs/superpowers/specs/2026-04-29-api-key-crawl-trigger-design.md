@@ -64,8 +64,8 @@ null
 #### `POST /api/orgs/[orgId]/api-key`
 
 Generates a new key. If one already exists, it is rotated (old key immediately invalidated).
-`lastTriggeredAt` is preserved on rotation to prevent bypassing the rate limit by rotating the key.
 Raw key returned **once** — caller must store it.
+`lastTriggeredAt` resets to `null` on rotation.
 
 **Response 201:**
 ```json
