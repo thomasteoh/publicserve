@@ -59,6 +59,12 @@ describe("POST /api/integrations/crawl", () => {
     expect(res.status).toBe(400)
   })
 
+  it("returns 400 when orgId is empty string", async () => {
+    const { POST } = await import("@/app/api/integrations/crawl/route")
+    const res = await POST(makeReq({ orgId: "" }, "ps_somekey"))
+    expect(res.status).toBe(400)
+  })
+
   it("returns 400 when body is not valid JSON", async () => {
     const { POST } = await import("@/app/api/integrations/crawl/route")
     const res = await POST(new Request("http://localhost/api/integrations/crawl", {
@@ -99,6 +105,9 @@ describe("POST /api/integrations/crawl", () => {
     const { POST } = await import("@/app/api/integrations/crawl/route")
     const res = await POST(makeReq({ orgId: "org-1" }, "ps_key"))
     expect(res.status).toBe(404)
+    expect(mockWriteLog).toHaveBeenCalledWith(
+      "crawl", "warn", "crawl trigger: org not found", { orgId: "org-1" }
+    )
   })
 
   it("returns 422 when org has no storage locations", async () => {
@@ -108,6 +117,9 @@ describe("POST /api/integrations/crawl", () => {
     const { POST } = await import("@/app/api/integrations/crawl/route")
     const res = await POST(makeReq({ orgId: "org-1" }, "ps_key"))
     expect(res.status).toBe(422)
+    expect(mockWriteLog).toHaveBeenCalledWith(
+      "crawl", "warn", "crawl trigger: no storage locations", { orgId: "org-1" }
+    )
   })
 
   it("returns 202 with locationCount and triggers crawl fire-and-forget", async () => {

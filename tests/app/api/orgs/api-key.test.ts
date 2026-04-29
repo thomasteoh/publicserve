@@ -47,14 +47,13 @@ describe("GET /api/orgs/[orgId]/api-key", () => {
     expect(res.status).toBe(403)
   })
 
-  it("returns null when no key exists", async () => {
+  it("returns 404 when no key exists", async () => {
     mockAuth.mockResolvedValue({ user: { id: "u1" } })
     mockResolvePermissions.mockResolvedValue(CAN_INTEGRATE)
     mockGetApiKeyMeta.mockResolvedValue(null)
     const { GET } = await import("@/app/api/orgs/[orgId]/api-key/route")
     const res = await GET(new Request("http://localhost"), makeParams("org-1"))
-    expect(res.status).toBe(200)
-    expect(await res.json()).toBeNull()
+    expect(res.status).toBe(404)
   })
 
   it("returns key metadata when key exists", async () => {

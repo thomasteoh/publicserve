@@ -1,5 +1,5 @@
 // src/lib/identity/api-keys.ts
-import { randomBytes, createHash } from "crypto"
+import { randomBytes, createHash, timingSafeEqual } from "crypto"
 import { tableGet, tableUpsert, tableDelete } from "@/lib/auth/tables"
 
 const TABLE = "OrgApiKeys"
@@ -56,7 +56,11 @@ export async function validateApiKey(
 ): Promise<{ valid: boolean; cooldownRemaining?: number }> {
   const row = await tableGet<Record<string, unknown>>(TABLE, orgId, "key")
   if (!row) return { valid: false }
-  if (row.keyHash !== hashKey(rawKey)) return { valid: false }
+  const storedHash = Buffer.from(row.keyHash as string, "hex")
+  const inputHash = Buffer.from(hashKey(rawKey), "hex")
+  if (storedHash.length !== inputHash.length || !timingSafeEqual(storedHash, inputHash)) {
+    return { valid: false }
+  }
 
   const lastTriggered = row.lastTriggeredAt as string | null
   if (lastTriggered) {

@@ -16,14 +16,15 @@ export async function POST(req: Request) {
   try {
     body = await req.json()
   } catch {
-    return NextResponse.json({ error: "Missing orgId" }, { status: 400 })
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
   }
 
   if (
     !body ||
     typeof body !== "object" ||
     !("orgId" in body) ||
-    typeof (body as { orgId: unknown }).orgId !== "string"
+    typeof (body as { orgId: unknown }).orgId !== "string" ||
+    !(body as { orgId: string }).orgId
   ) {
     return NextResponse.json({ error: "Missing orgId" }, { status: 400 })
   }
@@ -48,11 +49,13 @@ export async function POST(req: Request) {
 
   const org = await getOrg(orgId)
   if (!org) {
+    writeLog("crawl", "warn", "crawl trigger: org not found", { orgId })
     return NextResponse.json({ error: "Org not found" }, { status: 404 })
   }
 
   const locations = await listStorageLocations(orgId)
   if (locations.length === 0) {
+    writeLog("crawl", "warn", "crawl trigger: no storage locations", { orgId })
     return NextResponse.json({ error: "No storage locations configured" }, { status: 422 })
   }
 
@@ -60,14 +63,8 @@ export async function POST(req: Request) {
   writeLog("crawl", "info", "api-triggered crawl started", { orgId, locationCount: locations.length })
 
   void (async () => {
-    let failed = 0
-    for (const location of locations) {
-      try {
-        await runCrawl(location)
-      } catch {
-        failed++
-      }
-    }
+    const results = await Promise.allSettled(locations.map((location) => runCrawl(location)))
+    const failed = results.filter((r) => r.status === "rejected").length
     if (failed > 0) {
       writeLog("crawl", "error", "crawl completed with errors", { orgId, failed })
     }

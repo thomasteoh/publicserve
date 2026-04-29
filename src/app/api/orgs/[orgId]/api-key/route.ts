@@ -15,7 +15,9 @@ export async function GET(
   if (!perms.isAdmin && !perms.canConfigureIntegrations) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  return NextResponse.json(await getApiKeyMeta(orgId))
+  const meta = await getApiKeyMeta(orgId)
+  if (!meta) return NextResponse.json({ error: "Not Found" }, { status: 404 })
+  return NextResponse.json(meta)
 }
 
 export async function POST(
@@ -29,6 +31,9 @@ export async function POST(
   if (!perms.isAdmin && !perms.canConfigureIntegrations) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
+  // Note: small TOCTOU window between this check and generateApiKey — concurrent POSTs
+  // may both see existing=null and log "api key generated" instead of "rotated".
+  // Affects log accuracy only, not correctness or security.
   const existing = await getApiKeyMeta(orgId)
   const result = await generateApiKey(orgId, session.user.id)
   writeLog(
