@@ -1,7 +1,7 @@
 # PublicServe
 
-[![Unit Tests](https://github.com/YOUR_ORG/YOUR_REPO/actions/workflows/pr.yml/badge.svg)](https://github.com/YOUR_ORG/YOUR_REPO/actions/workflows/pr.yml)
-[![E2E Tests](https://github.com/YOUR_ORG/YOUR_REPO/actions/workflows/push-main.yml/badge.svg)](https://github.com/YOUR_ORG/YOUR_REPO/actions/workflows/push-main.yml)
+[![Unit Tests](https://github.com/thomasteoh/publicserve/actions/workflows/pr.yml/badge.svg)](https://github.com/thomasteoh/publicserve/actions/workflows/pr.yml)
+[![E2E Tests](https://github.com/thomasteoh/publicserve/actions/workflows/push-main.yml/badge.svg)](https://github.com/thomasteoh/publicserve/actions/workflows/push-main.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A self-hostable, multi-tenant document serving platform. PublicServe crawls HTML artefacts from cloud storage — Azure Blob, Azure Data Lake Storage, Amazon S3, or SFTP — indexes them, and makes them securely accessible to authenticated users behind role-based access controls.

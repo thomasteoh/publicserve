@@ -147,9 +147,10 @@ describe("recordTrigger", () => {
     const { recordTrigger } = await import("@/lib/identity/api-keys")
     await recordTrigger("org-1")
     const call = vi.mocked(tableUpsert).mock.calls[0]
+    const row = call[1] as Record<string, unknown>
     expect(call[0]).toBe("OrgApiKeys")
-    expect(call[1]).toMatchObject({ partitionKey: "org-1", rowKey: "key" })
-    const ts = new Date(call[1].lastTriggeredAt as string).getTime()
+    expect(row).toMatchObject({ partitionKey: "org-1", rowKey: "key" })
+    const ts = new Date(row.lastTriggeredAt as string).getTime()
     expect(ts).toBeGreaterThanOrEqual(before)
   })
 })
