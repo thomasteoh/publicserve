@@ -283,16 +283,9 @@ Resources created per environment:
 | Storage Account | Used for Azure Tables |
 | Azure Key Vault | `kv-publicserve-{env}` |
 
-Capture the outputs for the next step:
-
-```bash
-terraform output swa_hostname
-terraform output -raw swa_api_key
-terraform output -raw storage_connection_string
-terraform output keyvault_uri
-```
-
 ### 3. Configure GitHub Secrets
+
+The deploy workflow runs `terraform apply` and reads infrastructure outputs directly — you do not need to manually copy Terraform outputs into GitHub secrets. Only secrets that cannot be derived from Terraform need to be pre-configured.
 
 Add the following secrets under **Settings → Secrets and variables → Actions**:
 
@@ -302,18 +295,21 @@ Add the following secrets under **Settings → Secrets and variables → Actions
 | `ARM_CLIENT_SECRET` | Bootstrap service principal client secret |
 | `ARM_TENANT_ID` | Azure tenant ID |
 | `ARM_SUBSCRIPTION_ID` | Azure subscription ID |
-| `AZURE_STATIC_WEB_APPS_API_TOKEN` | `terraform output -raw swa_api_key` |
-| `AZURE_TABLES_CONNECTION_STRING` | `terraform output -raw storage_connection_string` |
-| `AZURE_KEYVAULT_URI` | `terraform output keyvault_uri` |
 | `AUTH_SECRET` | Random secret: `openssl rand -base64 32` |
-| `AUTH_URL` | Public app URL, e.g. `https://proud-beach-0123.azurestaticapps.net` |
 | `SMTP_HOST` | SMTP server hostname |
 | `SMTP_PORT` | SMTP port (default: `587`) |
 | `SMTP_USER` | SMTP username |
 | `SMTP_PASSWORD` | SMTP password or app password |
 | `SMTP_FROM` | From address for auth emails |
 
-For non-production, the E2E workflow reads `AZURE_TABLES_CONNECTION_STRING_NPROD` and `AZURE_KEYVAULT_URI_NPROD` — add those separately if running separate environments.
+The deploy workflow sources the following values from Terraform outputs automatically:
+
+| Variable | Terraform output |
+|---|---|
+| `AZURE_STATIC_WEB_APPS_API_TOKEN` | `swa_api_key` |
+| `AZURE_TABLES_CONNECTION_STRING` | `storage_connection_string` |
+| `AZURE_KEYVAULT_URI` | `keyvault_uri` |
+| `AUTH_URL` | `swa_hostname` (prefixed with `https://`) |
 
 ### 4. Deploy
 
