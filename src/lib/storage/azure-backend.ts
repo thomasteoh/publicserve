@@ -51,11 +51,15 @@ export class AzureBackend implements StorageBackend {
     // rootPath format: "accountname/container[/prefix]"
     // container is the second segment; prefix is everything after
     const parts = rootPath.split("/")
-    const container = parts[1] ?? parts[0]
+    if (parts.length < 2) {
+      throw new Error(`Invalid rootPath "${rootPath}": expected "account/container[/prefix]"`)
+    }
+    const container = parts[1]
+    const prefix = parts.slice(2).join("/") || undefined
     const containerClient = this.client.getContainerClient(container)
-    for await (const blob of containerClient.listBlobsFlat()) {
+    for await (const blob of containerClient.listBlobsFlat({ prefix })) {
       yield {
-        path: blob.name,
+        path: `${container}/${blob.name}`,
         sizeBytes: blob.properties.contentLength ?? 0,
         lastModified: blob.properties.lastModified ?? new Date(),
       }
