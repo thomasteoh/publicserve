@@ -1,4 +1,3 @@
-import { randomBytes } from "crypto"
 import { getTableClient } from "@/lib/azure-tables"
 import type { TableEntity } from "@azure/data-tables"
 
@@ -31,7 +30,8 @@ export function writeLog(
       const reverseMs = (Number.MAX_SAFE_INTEGER - now.getTime())
         .toString()
         .padStart(16, "0")
-      const rowKey = `${reverseMs}-${randomBytes(4).toString("hex")}`
+      const randBytes = globalThis.crypto.getRandomValues(new Uint8Array(4))
+      const rowKey = `${reverseMs}-${Buffer.from(randBytes).toString("hex")}`
 
       const { userId, orgId, ...rest } = metadata ?? {}
       const entity: TableEntity<Record<string, unknown>> = {
