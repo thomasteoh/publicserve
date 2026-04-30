@@ -1,17 +1,20 @@
 // src/middleware.ts
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+
+export function isPublicPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/integrations") ||
+    pathname.startsWith("/_next") ||
+    pathname === "/login"
+  )
+}
 
 export default auth(async (req) => {
   const { pathname } = req.nextUrl
 
-  // Public routes: auth pages, static assets
-  if (
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/_next") ||
-    pathname === "/login"
-  ) {
+  if (isPublicPath(pathname)) {
     return NextResponse.next()
   }
 
