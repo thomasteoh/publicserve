@@ -4,7 +4,7 @@ import type { StorageBackend, StorageEntry, SftpCredential } from "@/lib/storage
 import { Readable } from "stream"
 
 export class SftpBackend implements StorageBackend {
-  constructor(private creds: SftpCredential) {}
+  constructor(private creds: SftpCredential, private rootPath: string) {}
 
   private connectOptions() {
     const base = { host: this.creds.host, port: this.creds.port, username: this.creds.username }
@@ -48,8 +48,8 @@ export class SftpBackend implements StorageBackend {
     const sftp = new SftpClient()
     await sftp.connect(this.connectOptions())
     try {
-      // ssh2-sftp-client.get with no destination returns a Buffer
-      const buf = await sftp.get(path) as Buffer
+      const absolutePath = `${this.rootPath}/${path}`
+      const buf = await sftp.get(absolutePath) as Buffer
       return Readable.from(buf)
     } finally {
       await sftp.end()

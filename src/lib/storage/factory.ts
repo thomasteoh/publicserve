@@ -15,7 +15,7 @@ export function createBackend(
     case "s3":
       return new S3Backend(location, creds as S3Credential)
     case "sftp":
-      return new SftpBackend(creds as SftpCredential)
+      return new SftpBackend(creds as SftpCredential, location.rootPath)
     default:
       throw new Error(`Unknown storage type: ${(location as { type: string }).type}`)
   }
