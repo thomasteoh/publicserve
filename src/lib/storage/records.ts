@@ -25,7 +25,7 @@ export async function upsertRecord(
   orgId: string,
   entry: { path: string; sizeBytes: number; lastModified: Date },
   title?: string
-): Promise<void> {
+): Promise<{ isNew: boolean }> {
   const rk = recordRowKey(locationId, entry.path)
   const existing = await tableGet(TABLE, locationId, rk)
   await tableUpsert(TABLE, {
@@ -41,6 +41,7 @@ export async function upsertRecord(
     lastCrawledAt: new Date().toISOString(),
     createdAt: existing ? (existing as unknown as { createdAt: string }).createdAt : new Date().toISOString(),
   })
+  return { isNew: !existing }
 }
 
 export async function markStaleRecords(
