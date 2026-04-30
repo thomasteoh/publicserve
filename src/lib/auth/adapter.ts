@@ -35,7 +35,7 @@ export function AzureTablesAdapter(): Adapter {
     async getUserByEmail(email) {
       const results = await tableList<Record<string, unknown>>(
         "Users",
-        `PartitionKey eq 'user' and email eq '${email}'`
+        `PartitionKey eq 'user' and email eq '${escapeOData(email)}'`
       )
       if (results.length === 0) return null
       return entityToUser(results[0])
@@ -45,7 +45,7 @@ export function AzureTablesAdapter(): Adapter {
       const pk = `account_${provider}_${providerAccountId}`
       const results = await tableList<{ rowKey: string }>(
         "Accounts",
-        `PartitionKey eq '${pk}'`
+        `PartitionKey eq '${escapeOData(pk)}'`
       )
       if (results.length === 0) return null
       const userId = results[0].rowKey
@@ -86,7 +86,7 @@ export function AzureTablesAdapter(): Adapter {
 
     async unlinkAccount({ providerAccountId, provider }) {
       const pk = `account_${provider}_${providerAccountId}`
-      const results = await tableList<{ rowKey: string }>("Accounts", `PartitionKey eq '${pk}'`)
+      const results = await tableList<{ rowKey: string }>("Accounts", `PartitionKey eq '${escapeOData(pk)}'`)
       for (const r of results) await tableDelete("Accounts", pk, r.rowKey)
     },
 
@@ -167,4 +167,8 @@ function omitUndefined<T extends object>(obj: T): Partial<T> {
   return Object.fromEntries(
     Object.entries(obj).filter(([, v]) => v !== undefined)
   ) as Partial<T>
+}
+
+function escapeOData(value: string): string {
+  return value.replace(/'/g, "''")
 }

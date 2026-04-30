@@ -52,4 +52,26 @@ describe("AzureTablesAdapter", () => {
     )
     expect(session.sessionToken).toBe("tok123")
   })
+
+  it("escapes single quotes in email when building OData filter", async () => {
+    vi.mocked(tableList).mockResolvedValue([])
+    const { AzureTablesAdapter } = await import("@/lib/auth/adapter")
+    const adapter = AzureTablesAdapter()
+    await adapter.getUserByEmail!("O'Reilly@example.com")
+    expect(tableList).toHaveBeenCalledWith(
+      "Users",
+      expect.stringContaining("O''Reilly")
+    )
+  })
+
+  it("escapes single quotes in provider account ID when unlinking", async () => {
+    vi.mocked(tableList).mockResolvedValue([])
+    const { AzureTablesAdapter } = await import("@/lib/auth/adapter")
+    const adapter = AzureTablesAdapter()
+    await adapter.unlinkAccount!({ provider: "email", providerAccountId: "O'Brien@example.com" })
+    expect(tableList).toHaveBeenCalledWith(
+      "Accounts",
+      expect.stringContaining("O''Brien")
+    )
+  })
 })

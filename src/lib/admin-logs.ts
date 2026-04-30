@@ -68,9 +68,11 @@ export async function queryLogs(
   params: QueryLogsParams
 ): Promise<QueryLogsResult> {
   const { category, from, to, cursor } = params
-  const categories = category
-    ? [category as LogCategory]
-    : ALL_CATEGORIES
+  const validatedCategory =
+    category && (ALL_CATEGORIES as readonly string[]).includes(category)
+      ? (category as LogCategory)
+      : null
+  const categories = validatedCategory ? [validatedCategory] : ALL_CATEGORIES
   const dates = dateRange(from, to)
   const parsedCursor = cursor ? decodeCursor(cursor) : null
   const client = getTableClient("AuditLogs")

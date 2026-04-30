@@ -80,4 +80,15 @@ describe("queryLogs", () => {
     // Cursor encodes date_catIdx_rowKey
     expect(result.nextCursor).toBe("20260428_0_00049")
   })
+
+  it("ignores unknown category value (falls back to all categories)", async () => {
+    const { queryLogs } = await import("@/lib/admin-logs")
+    await queryLogs({
+      category: "'; DROP TABLE AuditLogs; --",
+      from: "2026-04-28",
+      to: "2026-04-28",
+    })
+    // All 5 categories queried (allowlist rejects the injection string)
+    expect(mockListEntities).toHaveBeenCalledTimes(5)
+  })
 })
