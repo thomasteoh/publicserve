@@ -1,8 +1,11 @@
-name: Push Main — Unit Tests
+name: CI — Unit Tests
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 
 jobs:
   unit-tests:
