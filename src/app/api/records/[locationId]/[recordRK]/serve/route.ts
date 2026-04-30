@@ -36,6 +36,16 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  if (record.stale) {
+    writeLog("serve", "warn", "attempt to serve stale record", {
+      userId: session.user.id,
+      orgId: record.orgId,
+      locationId,
+      recordRK,
+    })
+    return NextResponse.json({ error: "Record is stale" }, { status: 410 })
+  }
+
   const location = await getStorageLocation(record.orgId, locationId)
   if (!location) {
     return NextResponse.json({ error: "Storage location not found" }, { status: 404 })

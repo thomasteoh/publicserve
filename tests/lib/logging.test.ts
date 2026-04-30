@@ -57,4 +57,13 @@ describe("writeLog", () => {
     expect(() => writeLog("auth", "info", "test")).not.toThrow()
     await vi.waitFor(() => expect(mockCreateEntity).toHaveBeenCalled())
   })
+
+  it("row key uses hex-encoded random bytes (not Math.random base36)", async () => {
+    const { writeLog } = await import("@/lib/logging")
+    writeLog("auth", "info", "entropy test")
+    await vi.waitFor(() => expect(mockCreateEntity).toHaveBeenCalled())
+    const entity = mockCreateEntity.mock.calls[0][0]
+    // Format: 16 decimal digits (reverse timestamp) + '-' + 8 hex chars
+    expect(entity.rowKey).toMatch(/^\d{16}-[0-9a-f]{8}$/)
+  })
 })

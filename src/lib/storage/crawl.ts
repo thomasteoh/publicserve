@@ -29,8 +29,12 @@ export async function runCrawl(location: StorageLocation): Promise<CrawlResult> 
     for await (const entry of backend.list(location.rootPath)) {
       if (!entry.path.endsWith(".html")) continue
       seenPaths.add(entry.path)
-      await upsertRecord(location.storageLocationId, location.orgId, entry, undefined)
-      added++
+      const { isNew } = await upsertRecord(location.storageLocationId, location.orgId, entry, undefined)
+      if (isNew) {
+        added++
+      } else {
+        updated++
+      }
     }
 
     const stale = await markStaleRecords(location.storageLocationId, seenPaths)

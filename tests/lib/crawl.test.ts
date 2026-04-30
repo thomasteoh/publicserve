@@ -5,7 +5,7 @@ import { createHash } from "crypto"
 vi.mock("@/lib/logging", () => ({ writeLog: vi.fn() }))
 
 vi.mock("@/lib/storage/records", () => ({
-  upsertRecord: vi.fn(),
+  upsertRecord: vi.fn(() => Promise.resolve({ isNew: true })),
   markStaleRecords: vi.fn(() => Promise.resolve(1)),
   recordRowKey: (id: string, path: string) =>
     createHash("sha256").update(`${id}:${path}`).digest("hex"),
@@ -47,7 +47,23 @@ describe("runCrawl", () => {
       undefined
     )
     expect(markStaleRecords).toHaveBeenCalledWith("loc-1", new Set(["report.html"]))
-    expect(result.added + result.updated).toBe(1)
+    expect(result.added).toBe(1)
+    expect(result.updated).toBe(0)
     expect(result.stale).toBe(1)
+  })
+
+  it("counts updated separately when record already exists", async () => {
+    vi.mocked(upsertRecord).mockResolvedValue({ isNew: false })
+    const { runCrawl } = await import("@/lib/storage/crawl")
+    const location = {
+      storageLocationId: "loc-1",
+      orgId: "org-1",
+      rootPath: "container/path",
+      credentialRef: "storage-cred-loc-1",
+      type: "azure_blob",
+    } as never
+    const result = await runCrawl(location)
+    expect(result.added).toBe(0)
+    expect(result.updated).toBe(1)
   })
 })
